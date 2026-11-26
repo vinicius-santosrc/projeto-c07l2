@@ -1,6 +1,6 @@
 -- 1. DDL - BANCO DE DADOS E TABELAS
 DROP DATABASE IF EXISTS STEAM_DB;
-CREATE DATABASE STEAM_DB;
+CREATE DATABASE STEAM_DB CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE STEAM_DB;
 
 CREATE TABLE usuario (
@@ -199,7 +199,8 @@ JOIN categoria c       ON c.id_categoria = j.id_categoria
 JOIN desenvolvedora d  ON d.id_desenvolvedora = j.id_desenvolvedora;
 
 -- 4. DML (UPDATE / DELETE) e TCL (TRANSACTION)
-SET SQL_SAFE_UPDATES = 0;
+SET @steam_sql_safe_updates_anterior = @@SESSION.SQL_SAFE_UPDATES;
+SET SESSION SQL_SAFE_UPDATES = 0;
 
 UPDATE jogo SET preco = fn_preco_com_desconto(preco, 20) WHERE id_jogo = 2;
 
@@ -224,6 +225,8 @@ INSERT INTO compra (id_usuario, id_jogo, data_compra, valor_pago, forma_pagament
 VALUES (6, 9, NOW(), -10.00, 'PIX');
 SELECT id_usuario, id_jogo, valor_pago FROM compra WHERE id_usuario = 6;
 ROLLBACK;
+
+SET SESSION SQL_SAFE_UPDATES = @steam_sql_safe_updates_anterior;
 
 -- 5. CONSULTAS COM JOIN
 
