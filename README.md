@@ -139,3 +139,70 @@ Une `usuario`, `perfil`, `compra`, `jogo`, `categoria` e `desenvolvedora`.
 2. **Controle de transações (TCL)** — uso de `START TRANSACTION`, `SAVEPOINT`, `ROLLBACK TO` e `COMMIT` em dois exemplos práticos (seção 3).
 3. **Senhas com hash** (`SHA2`) nos dados de exemplo.
 4. **Consultas adicionais** com `BETWEEN`, `LIMIT` e filtros combinados.
+
+---
+
+# 3ª Entrega do Projeto — Integração Python e MySQL
+
+## Arquivos das três entregas
+
+| Entrega | Arquivo | Conteúdo |
+|---|---|---|
+| 1ª | `steam_db.mwb` | Modelo do banco no MySQL Workbench |
+| 2ª | `steam_db_script.sql` | Script SQL consolidado com esquema, dados iniciais, consultas, rotinas e permissões |
+| 3ª | `main.py`, `banco.py`, `conexao.py`, `requirements.txt` | Menu, operações SQL, conexão e dependência Python |
+
+## Como executar
+
+1. Abra `steam_db_script.sql` no MySQL Workbench conectado a uma instância local do MySQL Server 8.0 ou 8.4. Execute o script inteiro com uma conta administrativa. **O script recria o banco STEAM_DB e substitui seus dados.** Execute em uma instância de desenvolvimento.
+2. Abra o terminal na raiz deste repositório e crie um ambiente virtual com Python 3.10 ou superior.
+
+   ```bash
+   python -m venv .venv
+   ```
+
+3. Ative o ambiente virtual. No PowerShell, use `.\.venv\Scripts\Activate.ps1`. No Linux ou macOS, use `source .venv/bin/activate`.
+4. Instale o driver e inicie o menu.
+
+   ```bash
+   python -m pip install -r requirements.txt
+   python main.py
+   ```
+
+O programa conecta por padrão a `127.0.0.1:3306`, com o usuário `root`, e pede a senha sem exibi-la. Para usar outra configuração, defina `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER` e, opcionalmente, `MYSQL_PASSWORD` no ambiente antes de executar. A conta usada precisa de SELECT, INSERT, UPDATE, DELETE no banco e EXECUTE na procedure `sp_registrar_compra`.
+
+## O que demonstrar no menu
+
+- As opções 1 a 6 gerenciam usuário, perfil, desenvolvedora, categoria, jogo e compra. Todas permitem cadastrar, listar, buscar por atributo, atualizar e remover.
+- Os filtros de texto buscam trechos literais. Os demais filtros comparam o valor exato. Nos atributos opcionais, Enter pesquisa registros com NULL.
+- O UPDATE pode usar um filtro por atributo ou alcançar todos os registros mediante a confirmação `TODOS`.
+- O DELETE exige a chave primária e confirmação `SIM`. Em compra, a chave é composta por `id_usuario` e `id_jogo`.
+- O cadastro de compra chama `sp_registrar_compra`. A procedure confere o usuário e o jogo, impede duplicatas e registra o preço atual do jogo e a data da compra.
+- A opção 7 exibe os JOINs de usuário com perfil (1:1), desenvolvedora com jogo (1:N) e usuário com jogo por meio de compra (N:M).
+
+`conexao.py` abre e fecha a conexão e o cursor a cada operação. `banco.py` usa parâmetros `%s` para os valores, recupera as linhas com `fetchall()` e grava alterações com `commit()`. Em caso de erro, a transação sofre `rollback()`. O menu permite alterar senhas, que são gravadas com `SHA2` como no script original, e omite esse campo das consultas.
+
+## Roteiro do vídeo — 10 minutos
+
+| Tempo | Integrante | O que mostrar |
+|---|---|---|
+| 0:00–0:45 | Vinícius e Marcelo | Cada integrante diz seu nome e matrícula. Mostrem o tema e o repositório. |
+| 0:45–2:30 | Marcelo | Abram o modelo no Workbench e mostrem as seis tabelas, o `UNIQUE` em perfil e a chave composta em compra. Mostrem onde estão a procedure e os dados iniciais no SQL. |
+| 2:30–4:30 | Vinícius | Mostre `mysql.connector.connect`, configuração, parâmetros `%s`, leitura, `commit()` e `rollback()`. Aponte a chamada da procedure e abra o menu. |
+| 4:30–7:45 | Vinícius | No menu Categoria, cadastre `Categoria do vídeo`. Liste todas e filtre pelo nome. No Workbench, execute a primeira consulta abaixo. Depois execute o UPDATE pelo Workbench e confirme o novo nome pelo filtro no Python. Demonstre um UPDATE com filtro pelo ID da mesma categoria e exclua-a informando seu ID. Se quiser mostrar o UPDATE geral, use a descrição das categorias em uma base de demonstração. |
+| 7:45–9:30 | Marcelo | Rode os três JOINs pelo menu. Em Compra, cadastre a compra do usuário 6 para o jogo 4 com PIX. Liste pelo filtro de usuário, mostre a compra no JOIN N:M e remova-a usando os dois IDs. |
+| 9:30–10:00 | Vinícius e Marcelo | Mostrem o link do repositório e encerrem a apresentação. |
+
+```sql
+USE STEAM_DB;
+SELECT id_categoria, nome, descricao
+FROM categoria
+WHERE nome = 'Categoria do vídeo';
+
+-- Substitua 7 pelo ID exibido no cadastro, se necessário.
+UPDATE categoria
+SET nome = 'Categoria editada no Workbench'
+WHERE id_categoria = 7 AND nome = 'Categoria do vídeo';
+```
+
+Gravem com o banco de demonstração já carregado e as senhas fora da captura. Publiquem no YouTube com visibilidade **Não listado** e entreguem o link do vídeo e o do repositório. O limite é de 12 minutos. Prazo em **3 de dezembro de 2026, às 23h59**.
