@@ -139,3 +139,45 @@ Une `usuario`, `perfil`, `compra`, `jogo`, `categoria` e `desenvolvedora`.
 2. **Controle de transações (TCL)** — uso de `START TRANSACTION`, `SAVEPOINT`, `ROLLBACK TO` e `COMMIT` em dois exemplos práticos (seção 3).
 3. **Senhas com hash** (`SHA2`) nos dados de exemplo.
 4. **Consultas adicionais** com `BETWEEN`, `LIMIT` e filtros combinados.
+
+---
+
+# 3ª Entrega do Projeto — Integração Python e MySQL
+
+## Arquivos das três entregas
+
+| Entrega | Arquivo | Conteúdo |
+|---|---|---|
+| 1ª | `steam_db.mwb` | Modelo do banco no MySQL Workbench |
+| 2ª | `steam_db_script.sql` | Script SQL consolidado com esquema, dados iniciais, consultas, rotinas e permissões |
+| 3ª | `main.py`, `*_dao.py`, `filtro.py`, `requirements.txt` | Menu, operações SQL, conexão e dependência Python |
+
+## Como executar
+
+1. Abra `steam_db_script.sql` no MySQL Workbench conectado a uma instância local do MySQL Server 8.0 ou 8.4. Execute o script inteiro com uma conta administrativa. **O script recria o banco STEAM_DB e substitui seus dados.** Execute em uma instância de desenvolvimento.
+2. Abra o terminal na raiz deste repositório e crie um ambiente virtual com Python 3.10 ou superior.
+
+   ```bash
+   python -m venv .venv
+   ```
+
+3. Ative o ambiente virtual. No PowerShell, use `.\.venv\Scripts\Activate.ps1`. No Linux ou macOS, use `source .venv/bin/activate`.
+4. Instale o driver e inicie o menu.
+
+   ```bash
+   python -m pip install -r requirements.txt
+   python main.py
+   ```
+
+Configure os dados em `connection_dao.py` ou pelas variáveis `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` e `DB_NAME`. Os padrões da aula são localhost, porta 3306, usuário e senha root. O banco do projeto é STEAM_DB. A conta usada precisa de SELECT, INSERT, UPDATE, DELETE no banco e EXECUTE na procedure `sp_registrar_compra`.
+
+## O que demonstrar no menu
+
+- As opções 1 a 6 gerenciam usuário, perfil, desenvolvedora, categoria, jogo e compra. Todas permitem cadastrar, listar, buscar por atributo, atualizar e remover.
+- Os filtros de texto buscam trechos literais. Os demais filtros comparam o valor exato. Nos atributos opcionais, Enter pesquisa registros com NULL.
+- O UPDATE pode usar um filtro por atributo ou alcançar todos os registros mediante a confirmação `TODOS`.
+- O DELETE exige a chave primária e confirmação `SIM`. Em compra, a chave é composta por `id_usuario` e `id_jogo`.
+- O cadastro de compra chama `sp_registrar_compra`. A procedure confere o usuário e o jogo, impede duplicatas e registra o preço atual do jogo e a data da compra.
+- A opção 7 exibe os JOINs de usuário com perfil (1:1), desenvolvedora com jogo (1:N) e usuário com jogo por meio de compra (N:M).
+
+`connection_dao.py` abre e fecha a conexão e o cursor a cada operação. Cada DAO usa parâmetros `%s` para os valores, recupera as linhas com `fetchall()` e grava alterações com `commit()`. Em caso de erro, a transação sofre `rollback()`. O menu permite alterar senhas, que são gravadas com `SHA2` como no script original, e omite esse campo das consultas.
